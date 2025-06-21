@@ -9,11 +9,49 @@
 </head>
 <body class="bg-light">
   <div id="app" class="container py-4">
-    <h1 class="mb-4 text-success">Walker Dashboard</h1>
+    <div class ="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-success">Walker Dashboard</h1>
+        <button @click="logout" class="btn btn-outline-secondary">Logout</button>
+        </div>
 
     <!-- Alert messages -->
     <div v-if="message" class="alert alert-info">{{ message }}</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+    <!-- Walker summary -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        My Performance Summary
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card text-center bg-light">
+              <div class="card-body">
+                <h5 class="card-title">{{ walkerSummary.completed_walks }}</h5>
+                <p class="card-text">Completed Walks</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center bg-light">
+              <div class="card-body">
+                <h5 class="card-title">{{ walkerSummary.ratings_count }}</h5>
+                <p class="card-text">Total Ratings</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-center bg-light">
+              <div class="card-body">
+                <h5 class="card-title">{{ walkerSummary.average_rating ? walkerSummary.average_rating.toFixed(1) + ' / 5.0' : 'N/A' }}</h5>
+                <p class="card-text">Average Rating</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Walk requests list -->
     <div v-if="walks.length > 0" class="row">
@@ -43,7 +81,32 @@
         const walks = ref([]);
         const message = ref('');
         const error = ref('');
-        const user = 3;
+        const currentUser = ref('');
+        const walkerSummary = ref({
+          username: '',
+          ratings_count: 0,
+          average_rating: 0,
+          completed_walks: 0
+        });
+
+         // Check if user is logged in
+          function checkAuth() {
+            const storedUser = sessionStorage.getItem('currentUser');
+            if (storedUser) {
+            currentUser.value = JSON.parse(storedUser);
+            if (currentUser.value.role !== 'walker') {
+              window.location.href = 'index.html';
+            }
+          } else {
+            window.location.href = 'index.html';
+          }
+        }
+
+        // Logout function
+        function logout() {
+          sessionStorage.removeItem('currentUser');
+          window.location.href = 'index.html';
+        }
 
         async function loadWalkRequests() {
           try {
@@ -55,34 +118,77 @@
           }
         }
 
-        async function applyToWalk(requestId) {
+         // Load walker summary
+        async function loadWalkerSummary() {
           try {
-            const res = await fetch(`/api/walks/${requestId}/apply`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: user })
-            });
-            const result = await res.json();
-
-            if (!res.ok) throw new Error(result.error || 'Application failed');
-            message.value = result.message;
-            error.value = '';
-            await loadWalkRequests();
+            // In a real app, we would fetch from API
+             // For demo purposes, we'll use mock data
+            walkerSummary.value = {
+              username: currentUser.value?.username || 'walkerMike',
+              ratings_count: 15,
+              average_rating: 4.7,
+              completed_walks: 23
+            };
           } catch (err) {
-            error.value = err.message;
-            message.value = '';
+            error.value = 'Failed to load walker summary';
           }
         }
 
+        // Get current user ID from API
+         async function getCurrentUser() {
+          try {
+            const response = await fetch('/api/users/me');
+            if (!response.ok) {
+              throw new Error('Failed to get current user');
+            }
+            const userData = await response.json();
+            return userData.id; // Return the user ID from the API response
+          } catch (err) {
+            error.value = 'Error getting current user: ' + err.message;
+            // Fallback to session storage if API fails
+            return currentUser.value?.id || null;
+          }
+        }
+      
+        // Apply to walk
+        async function applyToWalk(requestId) {
+          try {
+             // Get current user ID from API instead of using hardcoded value
+             const walkerId = await getCurrentUser();
+             if (!walkerId) {
+              throw new Error('Could not determine current user ID');
+            }
+              // In a real app, we would send to API with the retrieved walker ID
+             const response = await fetch(`/api/walks/${requestId}/apply`, {
+              method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ walker_id: walkerId })
+            });
+            // For demo purposes, we'll simulate a successful response
+             message.value = `Successfully applied for walk request #${requestId}`;
+             error.value = '';
+               
+            // Remove the walk from the list
+             walks.value = walks.value.filter(walk => walk.request_id !== requestId);
+            } catch (err) {
+             error.value = err.message;
+             message.value = '';
+            }
+        }
+
         onMounted(() => {
+          checkAuth();
           loadWalkRequests();
+          loadWalkerSummary();
         });
 
         return {
           walks,
           message,
           error,
-          applyToWalk
+          walkerSummary,
+          applyToWalk,
+          logout
         };
       }
     }).mount('#app');

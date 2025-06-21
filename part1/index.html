@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog of the Day - Breaking Rules</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+        }
+        
+        /* To violate cognitive load - too many colors and fonts !*/
+        .header {
+            background: linear-gradient(90deg, #ff0000, #ff7700, #ffff00, #00ff00, #0000ff, #8b00ff);
+            padding: 20px;
+            text-align: center;
+            color: white;
+            font-family: 'Comic Sans MS', cursive;
+            text-shadow: 2px 2px 4px #000000;
+        }
+        
+        /* To violate kinematic load - too many animations and moving elements !*/
+        .animated-element {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(100px); }
+        }
+        
+        .spinning-text {
+            animation: spin 5s linear infinite;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* To violate accessibility - Using low contrast text and small font */
+        .low-contrast {
+            color: #cccccc;
+            background-color: #aaaaaa;
+            font-size: 10px;
+            padding: 10px;
+        }
+        
+        /* To violate accessibility - Using images instead of text */
+        .image-button {
+            width: 100px;
+            height: 40px;
+            background-image: url('button.png');
+            background-size: cover;
+            cursor: pointer;
+        }
+        
+        /* To violate cognitive load - Chaotic page layout */
+        .chaotic-layout {
+            display: grid;
+            grid-template-columns: 30% 20% 15% 35%;
+            grid-template-rows: auto;
+            gap: 10px;
+        }
+        
+        .dog-container {
+            margin: 20px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        /* To violate kinematic load - Images with unnecessary animations */
+        .dog-image {
+            width: 100%;
+            max-width: 500px;
+            height: auto;
+            border: 5px solid gold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* To violate accessibility - Using absolute units instead of relative units */
+        .fixed-size-text {
+            font-size: 12px;
+            width: 300px;
+            height: 100px;
+        }
+        
+        /* To violate cognitive load - Too many popups and notifications */
+        .popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: yellow;
+            padding: 15px;
+            border: 2px solid black;
+            z-index: 100;
+            animation: slideIn 0.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        /* To violate kinematic load - Background with moving elements */
+        .moving-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: repeating-linear-gradient(45deg, #606dbc, #606dbc 10px, #465298 10px, #465298 20px);
+            animation: moveBackground 10s linear infinite;
+        }
+        
+        @keyframes moveBackground {
+            from { background-position: 0 0; }
+            to { background-position: 100px 100px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- To violate cognitive load - Page title is too complex -->
+        <div class="header">
+            <h1>🐶 OUR LOVELY DOGS! 🐶</h1>
+            <h2><span class="spinning-text">🌟</span> Wonwon! <span class="spinning-text">🌟</span></h2>
+            <p>Our website is soooooooooooo good!</p>
+        </div>
+        
+        <!-- To violate cognitive load - Chaotic layout -->
+        <div class="chaotic-layout">
+            <div>
+                <h3>Welcome!</h3>
+                <p>Welcome again!</p>
+            </div>
+            <div>
+                <h4>Navigation</h4>
+                <ul>
+                    <li>Home</li>
+                    <li>About</li>
+                    <li>Contact</li>
+                </ul>
+            </div>
+            <div>
+                <h4>Social Media</h4>
+                <p>Follow us!</p>
+            </div>
+            <div>
+                <h4>Ads</h4>
+                <p>Buy dog food now!</p>
+            </div>
+        </div>
+        
+        <div class="dog-container">
+            <h2>Dog of the Day</h2>
+            
+            <!-- To violate accessibility - Image without alt text -->
+            <img v-if="dogImage" :src="dogImage" class="dog-image">
+            <p v-else>Loading dog image...</p>
+            
+            <!-- To violate accessibility - Low contrast text -->
+            <div class="low-contrast">
+                Low contrast text
+                Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla Blabla
+            </div>
+            
+            <!-- To violate accessibility - Using image instead of text for button -->
+            <div class="image-button" @click="fetchNewDog">
+                <!-- No text alternative -->
+            </div>
+            
+            <!-- To violate cognitive load - Information overload -->
+            <div>
+                <h3>Dog Facts</h3>
+                <p>Dogs have been companions to humans for over 14,000 years. They are descendants of wolves and have evolved to be one of the most diverse species on the planet. There are over 340 recognized dog breeds worldwide, each with unique characteristics, temperaments, and physical attributes. Dogs have an exceptional sense of smell, up to 100,000 times more sensitive than humans. They can detect certain cancers, predict seizures, and find missing persons. The smallest dog breed is the Chihuahua, while the largest is the Great Dane. Dogs can understand up to 250 words and gestures, count up to five, and perform simple mathematical calculations. The average dog has the intelligence equivalent to a two-year-old human child.</p>
+            </div>
+        </div>
+        
+        <!-- Violating kinematic load - Multiple moving elements -->
+        <div class="animated-element" style="top: 100px; left: 50px;"></div>
+        <div class="animated-element" style="top: 200px; left: 150px;"></div>
+        <div class="animated-element" style="top: 300px; left: 250px;"></div>
+        
+        <!-- Violating cognitive load - Popup notifications -->
+        <div class="popup" v-if="showPopup">
+            <p>Bazinga!</p>
+            <button @click="closePopup">Close</button>
+        </div>
+        
+        <!-- Violating kinematic load - Moving background -->
+        <div class="moving-background"></div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                const dogImage = ref(null);
+                const showPopup = ref(false);
+                
+                const fetchDog = async () => {
+                    try {
+                        const response = await fetch('https://dog.ceo/api/breeds/image/random');
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            dogImage.value = data.message;
+                        }
+                    } catch (error) {
+                        console.error('Error dog image:', error);
+                    }
+                };
+                
+                const fetchNewDog = () => {
+                    fetchDog();
+                };
+                
+                const closePopup = () => {
+                    showPopup.value = false;
+                };
+                
+                onMounted(() => {
+                    fetchDog();
+                    
+                    setTimeout(() => {
+                        showPopup.value = true;
+                    }, 3000);
+                    
+                    setInterval(() => {
+                        showPopup.value = true;
+                    }, 30000);
+                });
+                
+                return {
+                    dogImage,
+                    showPopup,
+                    fetchNewDog,
+                    closePopup
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

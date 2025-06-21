@@ -9,7 +9,10 @@
 </head>
 <body class="bg-light">
   <div id="app" class="container py-4">
-    <h1 class="mb-4 text-primary">Owner Dashboard</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1 class="text-primary">Owner Dashboard</h1>
+      <button @click="logout" class="btn btn-outline-secondary">Logout</button>
+    </div>
 
     <!-- Walk request form -->
     <div class="card mb-4">
@@ -19,8 +22,11 @@
       <div class="card-body">
         <form @submit.prevent="submitWalkRequest">
           <div class="mb-3">
-            <label class="form-label">Dog ID</label>
-            <input v-model="form.dog_id" type="number" class="form-control" required>
+            <label class="form-label">Select Your Dog</label>
+            <select v-model="form.dog_id" class="form-select" required>
+              <option value="" disabled>-- Choose a dog --</option>
+              <option v-for="dog in dogs" :key="dog.dog_id" :value="dog.dog_id">{{ dog.name }}</option>
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Requested Date & Time</label>
@@ -42,6 +48,29 @@
     <!-- Success or error messages -->
     <div v-if="message" class="alert alert-info">{{ message }}</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
+
+    <!-- List of dogs -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        My Dogs
+      </div>
+      <div class="card-body">
+        <div v-if="dogs.length > 0" class="row">
+          <div class="col-md-6 mb-3" v-for="dog in dogs" :key="dog.dog_id">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">{{ dog.name }}</h5>
+                <p class="card-text">
+                  <strong>Breed:</strong> {{ dog.breed }}<br>
+                  <strong>Size:</strong> {{ dog.size }}<br>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p v-else>No dogs registered yet.</p>
+      </div>
+    </div>
 
     <!-- List of walk requests -->
     <h2 class="mb-3">My Walk Requests</h2>
@@ -77,17 +106,75 @@
         });
 
         const walks = ref([]);
+        const dogs = ref([])
         const message = ref('');
         const error = ref('');
+        const currentUser= ref(null);
+        
 
-        async function loadWalks() {
-          try {
-            const res = await fetch('/api/walks');
-            walks.value = await res.json();
-          } catch (err) {
-            error.value = 'Failed to load walk requests';
+        // Check if user is logged in
+        function checkAuth() {
+          const storedUser = sessionStorage.getItem('currentUser');
+          if (storedUser) {
+            currentUser.value = JSON.parse(storedUser);
+            if (currentUser.value.role !== 'owner') {
+              window.location.href = 'index.html';
+            }
+          } else {
+            window.location.href = 'index.html';
           }
         }
+
+          // Logout function
+        function logout() {
+          sessionstorage.removeItem('curentUser');
+          window.location.herf= 'index.html';
+        }
+
+         // Load walk requests
+        async function loadWalks() {
+          try {
+            // get the current user from session storage
+            const use = JSON.parse(sessionStorage.getItem('currentUser'));
+            if(!user || !user.user_id){
+              error.value = 'User not authenticated';
+              renturn;
+           }
+
+            // Fetch walk requests for the current user's dogs
+            const response = await fetch('/api/walkrequests/owner/${user.user_id}')
+            if (!response.ok){
+              throw new Error('Failed to fetch walk requestes');
+            }
+            const data = await respinse.json();
+            walks.value = data;
+          } catch (err){
+            console.error('Error loading walks:', err);
+            error.value = 'Failed to load walk requests:' + err. message;
+          }
+        }
+
+        // load dogs
+        async function loaddogs(){
+          try {
+             // Get the current user from session storage
+            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+            if(!user || user.user_id){
+              error.value = 'User not authenticated';
+              renturn;
+            }
+          // Fetch dogs for the current user
+          const response = await fetch('/api/dogs/owner/${user.user_id}');
+          if (!response.ok){
+            throw new Error('Failed to fetch dogs');
+          }
+          const data = await response.json();
+          dogs.value = data;
+        }catch(err){
+          console.error('Error loading dogs:', err);
+          error.value = 'Failed to load dogs: ' + err.message;
+        }
+      }
 
         async function submitWalkRequest() {
           try {
@@ -116,12 +203,15 @@
         }
 
         onMounted(() => {
+          checkAuth();
           loadWalks();
+          loadDogs();
         });
 
         return {
           form,
           walks,
+          dogs,
           message,
           error,
           submitWalkRequest
